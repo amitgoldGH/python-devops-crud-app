@@ -13,6 +13,9 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
+                when {
+                    changeset "**/app/**"
+                }
                 steps {
                     script {
                         // Get the short Git commit hash
@@ -32,6 +35,9 @@ pipeline {
                 }
             }
         stage('Push to Docker Hub') {
+            when {
+                changeset "**/app/**"
+            }
             steps {
                 script {
                     // Login to Docker Hub using the existing credential 'dockerhub-cred'
