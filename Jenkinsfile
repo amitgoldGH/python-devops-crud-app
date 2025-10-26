@@ -18,12 +18,16 @@ pipeline {
                         // Get the short Git commit hash
                         GIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
 
+                        // Get current branch name
+                        BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                        BRANCH_SAFE = BRANCH_NAME.replaceAll("/", "-")
+
                         // Build Docker image
                         sh "docker build -f ./app/Dockerfile -t ${IMAGE_NAME}:latest ./app"
 
                         // Tag with latest and Git commit hash
                         sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
-                        sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}"
+                        sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH}"
                     }
                 }
             }
@@ -37,14 +41,24 @@ pipeline {
 
                     // Push both tags
                     sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH}"
                 }
             }
         }
     }
 
     post {
+
+
         always {
+            script {
+                // Remove dangling images
+                sh "docker image prune -f"
+                // Optionally remove the built image to free space
+                sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest || true"
+                sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH} || true"
+            }
+            
             echo "Pipeline finished."
         }
     }
