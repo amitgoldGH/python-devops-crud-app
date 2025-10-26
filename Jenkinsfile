@@ -19,7 +19,7 @@ pipeline {
                         GIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
 
                         // Build Docker image
-                        sh "docker build -t ${IMAGE_NAME}:latest ."
+                        sh "docker build -f ./app/Dockerfile -t ${IMAGE_NAME}:latest ./app"
 
                         // Tag with latest and Git commit hash
                         sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
