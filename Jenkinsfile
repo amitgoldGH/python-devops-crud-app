@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKER_HUB_USER = 'amitgoldgh'
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
         IMAGE_NAME = 'flask-crud-app'
     }
 
@@ -32,13 +31,13 @@ pipeline {
             steps {
                 script {
                     // Login to Docker Hub using the existing credential 'dockerhub-cred'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh "docker login -u \$USER -p \$PASS"
+                    }
+
                     // Push both tags
-                    sh """
-                    docker login -u \$DOCKERHUB_CREDENTIALS_USR -p \$DOCKERHUB_CREDENTIALS_PSW
-                    docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
-                    docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}
-                    """
-                    
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}"
                 }
             }
         }
