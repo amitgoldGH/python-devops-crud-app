@@ -32,10 +32,13 @@ pipeline {
             steps {
                 script {
                     // Login to Docker Hub using the existing credential 'dockerhub-cred'
-                    sh "docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW"
                     // Push both tags
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}"
+                    sh """
+                    docker login -u \$DOCKERHUB_CREDENTIALS_USR -p \$DOCKERHUB_CREDENTIALS_PSW
+                    docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                    docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${GIT_HASH}
+                    """
+                    
                 }
             }
         }
