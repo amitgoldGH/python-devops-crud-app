@@ -12,25 +12,30 @@ pipeline {
                 git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/amitgoldGH/python-devops-crud-app.git'
             }
         }
+
+        stage('Set Git Variables') {
+            steps {
+                script {
+                    // Assign to top-level env variables for global access
+                    env.GIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                    env.BRANCH_SAFE = env.BRANCH_NAME.replaceAll("/", "-")
+                    echo "Branch safe: ${env.BRANCH_SAFE}, Commit: ${env.GIT_HASH}"
+                }
+            }
+        }
         stage('Build Docker Image') {
                 when {
                     changeset "**/app/**"
                 }
                 steps {
                     script {
-                        // Get the short Git commit hash
-                        GIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-
-                        // Get current branch name
-                        BRANCH_NAME = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                        BRANCH_SAFE = BRANCH_NAME.replaceAll("/", "-")
-
                         // Build Docker image
                         sh "docker build -f ./app/Dockerfile -t ${IMAGE_NAME}:latest ./app"
 
                         // Tag with latest and Git commit hash
                         sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
-                        sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH}"
+                        sh "docker tag ${IMAGE_NAME}:latest ${DOCKER_HUB_USER}/${IMAGE_NAME}:${env.BRANCH_SAFE}-${env.GIT_HASH}"
                     }
                 }
             }
@@ -47,7 +52,7 @@ pipeline {
 
                     // Push both tags
                     sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
-                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH}"
+                    sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:${env.BRANCH_SAFE}-${env.GIT_HASH}"
                 }
             }
         }
@@ -62,7 +67,7 @@ pipeline {
                 sh "docker image prune -f"
                 // Optionally remove the built image to free space
                 sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest || true"
-                sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:${BRANCH_SAFE}-${GIT_HASH} || true"
+                sh "docker rmi ${DOCKER_HUB_USER}/${IMAGE_NAME}:${env.BRANCH_SAFE}-${env.GIT_HASH} || true"
             }
             
             echo "Pipeline finished."
