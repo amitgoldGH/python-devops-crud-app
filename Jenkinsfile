@@ -38,7 +38,7 @@ pipeline {
                     pip install pytest flake8
 
                     # Run linting
-                    flake8 ./app/
+                    flake8 --config=./app/.flake8 ./app/
 
                     # Run tests if test directory exists
                     if [ -d "./app/tests" ]; then
