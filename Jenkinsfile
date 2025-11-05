@@ -28,25 +28,26 @@ pipeline {
         stage('Test & Lint') {
             steps {
                 script {
-                    // Create venv cache dir if doesnt already exist
-                    sh """
-                    mkdir -p ~/.cache/pip
-                    pip install --cache-dir ~/.cache/pip -r ./app/requirements.txt
-                    pip install --cache-dir ~/.cache/pip pytest flake8
-                    """
+                    sh '''
+                    python3 -m venv venv
+                    source venv/bin/activate
 
-                    // Run linting
-                    sh "flake8 ./app/"
+                    # Upgrade pip and install dependencies inside venv
+                    pip install --upgrade pip
+                    pip install -r ./app/requirements.txt
+                    pip install pytest flake8
 
-                    // Run unit tests
-                    sh """
+                    # Run linting
+                    flake8 ./app/
+
+                    # Run tests if test directory exists
                     if [ -d "./app/tests" ]; then
-                        echo "Running unit tests"
-                        pytest ./app/tests/
+                        echo "Running unit tests..."
+                        pytest ./app/tests/ -v
                     else
-                        echo "No tests dir found. skipping.."
+                        echo "No tests directory. Skipping."
                     fi
-                    """
+                    '''
                 }
             }
         }
