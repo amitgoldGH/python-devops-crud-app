@@ -1,13 +1,14 @@
 import pytest
 from app import app
 from database import db
-from models import Task
+
 
 @pytest.fixture
 def test_client():
     """Create a Flask test client with an in-memory database."""
     app.config['TESTING'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'  # in-memory DB
+    # in-memory DB
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     with app.app_context():
@@ -20,6 +21,7 @@ def test_client():
     with app.app_context():
         db.session.remove()
         db.drop_all()
+
 
 def test_add_and_get_task(test_client):
     """Test adding a task and then retrieving it."""
@@ -35,6 +37,7 @@ def test_add_and_get_task(test_client):
     assert len(data) == 1
     assert data[0]['title'] == 'Test Task'
     assert data[0]['completed'] is False
+
 
 def test_delete_task(test_client):
     """Test deleting a task."""
