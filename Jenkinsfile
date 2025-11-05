@@ -24,6 +24,33 @@ pipeline {
                 }
             }
         }
+        
+        stage('Test & Lint') {
+            steps {
+                script {
+                    // Create venv cache dir if doesnt already exist
+                    sh """
+                    mkdir -p ~/.cache/pip
+                    pip install --cache-dir ~/.cache/pip -r ./app/requirements.txt
+                    pip install --cache-dir ~/.cache/pip pytest flake8
+                    """
+
+                    // Run linting
+                    sh "flake8 ./app/"
+
+                    // Run unit tests
+                    sh """
+                    if [ -d "./app/tests" ]; then
+                        echo "Running unit tests"
+                        pytest ./app/tests/
+                    else
+                        echo "No tests dir found. skipping.."
+                    fi
+                    """
+                }
+            }
+        }
+
         stage('Build Docker Image') {
                 when {
                     changeset "**/app/**"
@@ -45,7 +72,7 @@ pipeline {
             }
             steps {
                 script {
-                    // Login to Docker Hub using the existing credential 'dockerhub-cred'
+                    // Login to Docker Hub using the existing credential 'dockerhub-cred', set up on jenkins
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                         sh "docker login -u \$USER -p \$PASS"
                     }
