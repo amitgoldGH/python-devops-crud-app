@@ -11,3 +11,6 @@ venv/
 # VSCode / IDE Settings
 .vscode/
 .idea/
+
+# AWS CLI credentials
+*.aws
