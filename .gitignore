@@ -14,3 +14,10 @@ venv/
 
 # AWS CLI credentials
 *.aws
+
+# Terraform state
+*.tfstate
+*.tfstate.backup
+terraform/outputs.tf
+terraform/.terraform/
+terraform/.terraform.lock.hcl
