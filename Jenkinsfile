@@ -41,8 +41,6 @@ pipeline {
                     flake8 --config=./app/.flake8 ./app/
 
                     # Run tests if test directory exists
-                    echo "Current working directory: $(pwd)"
-                    ls -R
                     if [ -d "./app/tests" ]; then
                         echo "Running unit tests..."
                         PYTHONPATH=$(pwd) pytest ./app/tests/ -v
